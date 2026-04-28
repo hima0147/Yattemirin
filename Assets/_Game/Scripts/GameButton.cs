@@ -1,52 +1,33 @@
 using UnityEngine;
-using UnityEngine.UI; // 画像(Image)を扱うのに必要
-using TMPro;          // 文字(TextMeshPro)を扱うのに必要
+using UnityEngine.UI;
+using TMPro;
 
 public class GameButton : MonoBehaviour
 {
-    [Header("UIパーツの割り当て")]
-    public TextMeshProUGUI titleText; // タイトルを表示するテキスト
-    public Image iconImage;           // アイコンを表示する画像
+    [Header("UIパーツ")]
+    public TextMeshProUGUI titleText;
+    public Image iconImage;
 
-    // このボタンが担当するゲームデータ
     private MinigameData myData;
+    private ElevatorController elevator; // エレベーターへの連絡用
 
-    // 外部（GameManagerなど）からデータをセットしてもらう関数
-    public void Setup(MinigameData data)
+    // セットアップ時に、エレベーターの連絡先も教えてもらう
+    public void Setup(MinigameData data, ElevatorController elevatorController)
     {
         myData = data;
+        elevator = elevatorController; // 連絡先を覚える
 
-        // データの中身をUIに反映
-        if (titleText != null)
-        {
-            titleText.text = data.gameTitle;
-        }
-
-        if (iconImage != null && data.icon != null)
-        {
-            iconImage.sprite = data.icon;
-        }
+        if (titleText != null) titleText.text = data.gameTitle;
+        if (iconImage != null && data.icon != null) iconImage.sprite = data.icon;
     }
-    
-    // ボタンが押された時の処理（後で使います）
+
+    // ボタン設定で「On Click」に登録する関数
     public void OnClickButton()
     {
-        if (myData != null)
+        if (myData != null && elevator != null)
         {
-            Debug.Log("これから遊ぶゲーム: " + myData.gameTitle);
-            // ここにシーン移動の処理を後で書きます
-        }
-    }
-    // ↓テスト用に追記（テストが終わったら消してOK）
-    public MinigameData testData; // Inspectorでデータをセットする用
-
-    // Inspectorの値が変わった時に自動で実行される関数
-    void OnValidate()
-    {
-        if (testData != null)
-        {
-            Setup(testData);
+            // エレベーターに「このシーンへ移動して！」と依頼
+            elevator.LoadGameScene(myData.sceneName);
         }
     }
 }
-

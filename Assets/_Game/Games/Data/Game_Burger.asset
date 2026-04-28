@@ -15,4 +15,4 @@ MonoBehaviour:
   gameTitle: "\u3064\u307F\u3064\u307F\u30D0\u30FC\u30AC\u30FC"
   description: "\u30D0\u30FC\u30AC\u30FC\u3092\u3064\u3080\u30B2\u30FC\u30E0\u3060\u3088"
   icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  sceneName: 
+  sceneName: Game_Burger
