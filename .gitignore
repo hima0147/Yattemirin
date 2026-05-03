@@ -101,3 +101,5 @@ InitTestScene*.unity*
 # Mac Add
 iOS_Build/
 .DS_Store
+/.vscode
+Yattemirin.slnx
