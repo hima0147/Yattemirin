@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Game/Scenes/Game_Burger.unity
     guid: a62517df51aa723458a5567978afe36d
+  - enabled: 1
+    path: Assets/_Game/Scenes/Game_Suika.unity
+    guid: 42db14c198db5f7419ffbd63608226c3
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

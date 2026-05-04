@@ -1013,6 +1013,7 @@ MonoBehaviour:
   gameDataList:
   - {fileID: 11400000, guid: d88565dd046b2d843b12b770136f954b, type: 2}
   - {fileID: 11400000, guid: 234f9f4998b7e8046b01bb07d50a4746, type: 2}
+  - {fileID: 11400000, guid: f6846334ed3ef2d4da88cc540a67a0f6, type: 2}
   elevatorController: {fileID: 1403339077}
 --- !u!1 &1667180343
 GameObject:

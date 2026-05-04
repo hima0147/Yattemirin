@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Undefined
   - Ingredient
+  - Fruit
   layers:
   - Default
   - TransparentFX
