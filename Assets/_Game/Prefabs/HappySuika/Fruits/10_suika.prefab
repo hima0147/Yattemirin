@@ -261,5 +261,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SuikaFruit
   fruitLevel: 10
-  hasDropped: 0
-  isMerging: 0

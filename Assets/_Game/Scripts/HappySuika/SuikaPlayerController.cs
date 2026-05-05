@@ -2,85 +2,109 @@ using UnityEngine;
 
 public class SuikaPlayerController : MonoBehaviour
 {
-    [Header("果物プレハブ（テスト用に0番と1番を登録）")]
-    public GameObject[] fruitPrefabs;
+    [Header("落とす候補の果物（レベル0〜4くらいを登録）")]
+    public GameObject[] dropFruitPrefabs;
 
     [Header("落下設定")]
-    public float spawnY = 5.0f; // 果物が出現する高さ（Y座標）
-    public float limitX = 2.5f; // 左右に動ける限界の幅（X座標）
+    public float spawnY = 5.0f;
+    public float limitX = 2.5f;
+
+    [Header("落下予測線（ガイドライン）")]
+    public LineRenderer guideLine;
 
     private GameObject _currentFruit;
     private Rigidbody2D _currentRb;
-    private bool _canDrop = true;
+    private bool _canDrop = false;
+    private int _nextFruitIndex;
+
+    void Start()
+    {
+        if (guideLine != null) guideLine.enabled = false;
+    }
 
     void Update()
     {
-        // ゲーム中じゃない時（タイトル画面など）は操作させない
         if (!SuikaGameManager.Instance.IsPlaying) return;
 
-        if (!_canDrop) return;
+        if (!_canDrop || _currentFruit == null) return;
 
-        // 画面をタッチ（クリック）した瞬間
-        if (Input.GetMouseButtonDown(0))
-        {
-            SpawnFruit();
-        }
-        // タッチしたまま指を動かしている間
-        else if (Input.GetMouseButton(0) && _currentFruit != null)
+        // 常に現在の果物の位置から真下へ線を引く
+        UpdateGuideLine();
+
+        // 画面をタッチしている間は、指のX座標に合わせて果物が動く
+        if (Input.GetMouseButton(0))
         {
             MoveFruit();
         }
-        // 指を離した瞬間
-        else if (Input.GetMouseButtonUp(0) && _currentFruit != null)
+        // 指を離した瞬間に落下する
+        else if (Input.GetMouseButtonUp(0))
         {
             DropFruit();
         }
     }
 
-    void SpawnFruit()
+    // ゲーム開始時にGameManagerから呼ばれる
+    public void StartGame()
     {
-        // まずはテストで、0番か1番の果物をランダムに出す
-        int randomIndex = Random.Range(0, 2);
-        _currentFruit = Instantiate(fruitPrefabs[randomIndex]);
+        // 最初の「ネクスト」を裏でランダムに決める
+        _nextFruitIndex = Random.Range(0, dropFruitPrefabs.Length);
+        
+        // すぐに「現在の果物」として画面上部に出現させる
+        PrepareCurrentFruit();
+    }
+
+    void PrepareCurrentFruit()
+    {
+        // 記憶していた「ネクスト」を上部に出現させる
+        _currentFruit = Instantiate(dropFruitPrefabs[_nextFruitIndex]);
+        _currentFruit.transform.position = new Vector3(0f, spawnY, 0f); // 最初は真ん中に待機
 
         _currentRb = _currentFruit.GetComponent<Rigidbody2D>();
-        
-        // 生成された瞬間は落ちないように重力を0にする
-        _currentRb.gravityScale = 0f;
-        // 物理演算の回転も一旦止める（指で動かす時にプルプルしないように）
-        _currentRb.freezeRotation = true;
+        _currentRb.gravityScale = 0f; // まだ落ちない
+        _currentRb.freezeRotation = true; // 回転させない
 
-        MoveFruit(); // すぐに指の位置へ移動させる
+        // すぐに次の「ネクスト」を新たに決めてUIを更新する
+        _nextFruitIndex = Random.Range(0, dropFruitPrefabs.Length);
+        UpdateNextFruitUI();
+
+        if (guideLine != null) guideLine.enabled = true; // 線を表示
+        _canDrop = true; // 操作可能にする
+    }
+
+    void UpdateNextFruitUI()
+    {
+        Sprite nextSprite = dropFruitPrefabs[_nextFruitIndex].GetComponent<SpriteRenderer>().sprite;
+        SuikaGameManager.Instance.uiManager.UpdateNextFruitIcon(nextSprite);
     }
 
     void MoveFruit()
     {
-        // 画面のタッチ位置を、ゲーム内の座標に変換
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-        // 左右の壁を突き抜けないように制限をかける
         float clampedX = Mathf.Clamp(mousePos.x, -limitX, limitX);
-
-        // 果物の位置を更新（高さは固定）
         _currentFruit.transform.position = new Vector3(clampedX, spawnY, 0f);
+    }
+
+    void UpdateGuideLine()
+    {
+        if (guideLine != null && _currentFruit != null)
+        {
+            Vector3 pos = _currentFruit.transform.position;
+            guideLine.SetPosition(0, pos);
+            guideLine.SetPosition(1, new Vector3(pos.x, -10f, 0f));
+        }
     }
 
     void DropFruit()
     {
-        // 重力を1に戻して落下させる！
-        _currentRb.gravityScale = 1f;
-        // 回転の固定も解除して、自然に転がるようにする
+        _currentRb.gravityScale = 1f; // 重力をオンにして落下！
         _currentRb.freezeRotation = false;
 
         _currentFruit = null;
-        _canDrop = false; // 連続で落とせないようにする
+        _canDrop = false;
 
-        // 1.5秒後に再び次の果物を落とせるようにする（クールダウン）
-        Invoke(nameof(ResetDrop), 1.5f);
-    }
+        if (guideLine != null) guideLine.enabled = false; // 落下中は線を消す
 
-    void ResetDrop()
-    {
-        _canDrop = true;
+        // 1.5秒後に再び次の果物を上部に準備する
+        Invoke(nameof(PrepareCurrentFruit), 1.5f);
     }
 }

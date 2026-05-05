@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI; // UIを操作するために追加
 using TMPro;
 
 public class SuikaUIManager : MonoBehaviour
@@ -9,18 +10,31 @@ public class SuikaUIManager : MonoBehaviour
     public GameObject panelGo;
     public GameObject panelGameInfo;
 
-    [Header("テキスト等")]
+    [Header("テキスト・アイコン")]
     public TextMeshProUGUI scoreText;
-    public GameObject nextFruitIcon;
+    public Image nextFruitIcon; // GameObjectからImage型に変更
 
-    [Header("背景（余白）の色変更")] // 追加：カメラの色を変えるための枠
+    [Header("背景（余白）の色変更")]
     public Camera mainCamera;
-    public Color titleBackgroundColor = Color.white; // タイトル用（後でピンクに）
-    public Color gameBackgroundColor = Color.white;  // ゲーム用（後で水色に）
+    public Color titleBackgroundColor = Color.white;
+    public Color gameBackgroundColor = Color.white;
 
     public void UpdateScore(int score)
     {
         scoreText.text = score.ToString();
+    }
+
+    // 次の果物の画像アイコンを更新する処理
+    public void UpdateNextFruitIcon(Sprite fruitSprite)
+    {
+        if (nextFruitIcon != null)
+        {
+            nextFruitIcon.sprite = fruitSprite;
+            // 透明だったアイコンを不透明(アルファ値1)にして表示する
+            Color c = nextFruitIcon.color;
+            c.a = 1f;
+            nextFruitIcon.color = c;
+        }
     }
 
     public void ShowTitleScreen()
@@ -29,8 +43,6 @@ public class SuikaUIManager : MonoBehaviour
         panelReady.SetActive(false);
         panelGo.SetActive(false);
         panelGameInfo.SetActive(false);
-
-        // カメラ（余白）の色をタイトル用の色にする
         if (mainCamera != null) mainCamera.backgroundColor = titleBackgroundColor;
     }
 
@@ -50,8 +62,6 @@ public class SuikaUIManager : MonoBehaviour
     {
         panelGo.SetActive(false);
         panelGameInfo.SetActive(true);
-
-        // カメラ（余白）の色をゲーム用の色に戻す
         if (mainCamera != null) mainCamera.backgroundColor = gameBackgroundColor;
     }
 }
