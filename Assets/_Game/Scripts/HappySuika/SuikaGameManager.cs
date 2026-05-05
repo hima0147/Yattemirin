@@ -9,6 +9,8 @@ public class SuikaGameManager : MonoBehaviour
     private int _currentScore = 0;
     private bool _isGamePlaying = false;
 
+    public bool IsPlaying => _isGamePlaying;
+
     private void Awake()
     {
         Instance = this;
