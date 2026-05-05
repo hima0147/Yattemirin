@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems; // 追加：UIをタッチしているかの判定に必要
 
 public class SuikaPlayerController : MonoBehaviour
 {
@@ -15,7 +16,12 @@ public class SuikaPlayerController : MonoBehaviour
     private GameObject _currentFruit;
     private Rigidbody2D _currentRb;
     private bool _canDrop = false;
+    
     private int _nextFruitIndex;
+    private int _debugFruitIndex = 0;
+
+    // 追加：UIを操作中かどうかのフラグ
+    private bool _isInteractingWithUI = false;
 
     void Start()
     {
@@ -25,55 +31,111 @@ public class SuikaPlayerController : MonoBehaviour
     void Update()
     {
         if (!SuikaGameManager.Instance.IsPlaying) return;
-
         if (!_canDrop || _currentFruit == null) return;
 
-        // 常に現在の果物の位置から真下へ線を引く
         UpdateGuideLine();
 
-        // 画面をタッチしている間は、指のX座標に合わせて果物が動く
+        // 1. 画面をタッチした瞬間
+        if (Input.GetMouseButtonDown(0))
+        {
+            // イベントシステムを使って、指（マウス）の下にUIがあるかチェック
+            // （※エディタのクリックと、実機のタッチの両方に対応する安全な書き方です）
+            if (EventSystem.current.IsPointerOverGameObject() || 
+               (Input.touchCount > 0 && EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId)))
+            {
+                _isInteractingWithUI = true; // UI操作中としてマーク
+                return; // ここで処理を止める（果物は動かさない）
+            }
+        }
+
+        // 2. 指を離した瞬間
+        if (Input.GetMouseButtonUp(0))
+        {
+            // UI操作中だった場合は、落とさずにフラグをリセットして終了
+            if (_isInteractingWithUI)
+            {
+                _isInteractingWithUI = false;
+                return;
+            }
+            
+            DropFruit();
+        }
+
+        // 3. タッチしたまま指を動かしている間
         if (Input.GetMouseButton(0))
         {
-            MoveFruit();
-        }
-        // 指を離した瞬間に落下する
-        else if (Input.GetMouseButtonUp(0))
-        {
-            DropFruit();
+            // UI操作中でなければ果物を追従させる
+            if (!_isInteractingWithUI)
+            {
+                MoveFruit();
+            }
         }
     }
 
-    // ゲーム開始時にGameManagerから呼ばれる
     public void StartGame()
     {
-        // 最初の「ネクスト」を裏でランダムに決める
         _nextFruitIndex = Random.Range(0, dropFruitPrefabs.Length);
-        
-        // すぐに「現在の果物」として画面上部に出現させる
+        _debugFruitIndex = 0;
         PrepareCurrentFruit();
     }
 
     void PrepareCurrentFruit()
     {
-        // 記憶していた「ネクスト」を上部に出現させる
-        _currentFruit = Instantiate(dropFruitPrefabs[_nextFruitIndex]);
-        _currentFruit.transform.position = new Vector3(0f, spawnY, 0f); // 最初は真ん中に待機
+        if (SuikaGameManager.Instance.isDebugMode)
+        {
+            _currentFruit = Instantiate(SuikaGameManager.Instance.allFruitPrefabs[_debugFruitIndex]);
+        }
+        else
+        {
+            _currentFruit = Instantiate(dropFruitPrefabs[_nextFruitIndex]);
+            _nextFruitIndex = Random.Range(0, dropFruitPrefabs.Length);
+        }
 
+        _currentFruit.transform.position = new Vector3(0f, spawnY, 0f);
         _currentRb = _currentFruit.GetComponent<Rigidbody2D>();
-        _currentRb.gravityScale = 0f; // まだ落ちない
-        _currentRb.freezeRotation = true; // 回転させない
+        _currentRb.gravityScale = 0f;
+        _currentRb.freezeRotation = true;
 
-        // すぐに次の「ネクスト」を新たに決めてUIを更新する
-        _nextFruitIndex = Random.Range(0, dropFruitPrefabs.Length);
         UpdateNextFruitUI();
 
-        if (guideLine != null) guideLine.enabled = true; // 線を表示
-        _canDrop = true; // 操作可能にする
+        if (guideLine != null) guideLine.enabled = true;
+        _canDrop = true;
+        _isInteractingWithUI = false; // 念のためここでもリセット
+    }
+
+    public void CycleDebugFruit()
+    {
+        if (!SuikaGameManager.Instance.isDebugMode || _currentFruit == null || !_canDrop) return;
+
+        _debugFruitIndex++;
+        if (_debugFruitIndex >= SuikaGameManager.Instance.allFruitPrefabs.Length)
+        {
+            _debugFruitIndex = 0;
+        }
+
+        Vector3 currentPos = _currentFruit.transform.position;
+        Destroy(_currentFruit);
+
+        _currentFruit = Instantiate(SuikaGameManager.Instance.allFruitPrefabs[_debugFruitIndex]);
+        _currentFruit.transform.position = currentPos;
+        _currentRb = _currentFruit.GetComponent<Rigidbody2D>();
+        _currentRb.gravityScale = 0f;
+        _currentRb.freezeRotation = true;
+
+        UpdateNextFruitUI();
     }
 
     void UpdateNextFruitUI()
     {
-        Sprite nextSprite = dropFruitPrefabs[_nextFruitIndex].GetComponent<SpriteRenderer>().sprite;
+        Sprite nextSprite;
+        if (SuikaGameManager.Instance.isDebugMode)
+        {
+            nextSprite = SuikaGameManager.Instance.allFruitPrefabs[_debugFruitIndex].GetComponent<SpriteRenderer>().sprite;
+        }
+        else
+        {
+            nextSprite = dropFruitPrefabs[_nextFruitIndex].GetComponent<SpriteRenderer>().sprite;
+        }
         SuikaGameManager.Instance.uiManager.UpdateNextFruitIcon(nextSprite);
     }
 
@@ -96,15 +158,14 @@ public class SuikaPlayerController : MonoBehaviour
 
     void DropFruit()
     {
-        _currentRb.gravityScale = 1f; // 重力をオンにして落下！
+        _currentRb.gravityScale = 1f;
         _currentRb.freezeRotation = false;
 
         _currentFruit = null;
         _canDrop = false;
 
-        if (guideLine != null) guideLine.enabled = false; // 落下中は線を消す
+        if (guideLine != null) guideLine.enabled = false;
 
-        // 1.5秒後に再び次の果物を上部に準備する
         Invoke(nameof(PrepareCurrentFruit), 1.5f);
     }
 }

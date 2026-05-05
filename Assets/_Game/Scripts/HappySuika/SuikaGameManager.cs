@@ -16,6 +16,9 @@ public class SuikaGameManager : MonoBehaviour
 
     private int _currentScore = 0;
     private bool _isGamePlaying = false;
+    
+    // 追加：デバッグモードのフラグ
+    public bool isDebugMode = false;
 
     public bool IsPlaying => _isGamePlaying;
 
@@ -32,6 +35,7 @@ public class SuikaGameManager : MonoBehaviour
     public void ShowTitle()
     {
         _isGamePlaying = false;
+        isDebugMode = false; // タイトルに戻ったらデバッグモード解除
         _currentScore = 0;
         uiManager.UpdateScore(0);
         
@@ -46,8 +50,17 @@ public class SuikaGameManager : MonoBehaviour
         uiManager.ShowTitleScreen();
     }
 
+    // 通常のスタートボタン用
     public void OnClickStartButton()
     {
+        StartCoroutine(StartGameSequence());
+    }
+
+    // 追加：デバッグモードでスタートするためのボタン用
+    public void StartDebugGame()
+    {
+        isDebugMode = true;
+        Debug.Log("★デバッグモードで起動します★");
         StartCoroutine(StartGameSequence());
     }
 
@@ -87,9 +100,18 @@ public class SuikaGameManager : MonoBehaviour
         if (!_isGamePlaying) return;
 
         _isGamePlaying = false;
-        // 変更：現在のスコアをUIマネージャーに渡す
         uiManager.ShowGameOverScreen(_currentScore);
         Debug.Log("ゲームオーバー！");
+    }
+
+    // 追加：スコアをタッチした時に呼ばれる強制ゲームオーバー
+    public void ForceGameOver()
+    {
+        if (isDebugMode)
+        {
+            Debug.Log("★強制ゲームオーバー発動★");
+            GameOver();
+        }
     }
 
     private void ClearAllFruits()
