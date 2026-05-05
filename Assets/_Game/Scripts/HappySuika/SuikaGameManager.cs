@@ -9,7 +9,7 @@ public class SuikaGameManager : MonoBehaviour
     public SuikaUIManager uiManager;
 
     [Header("プレイヤー操作管理")]
-    public SuikaPlayerController playerController; // 追加：Playerへの指示用
+    public SuikaPlayerController playerController;
 
     [Header("全11種類の果物プレハブを順番に登録(0〜10)")]
     public GameObject[] allFruitPrefabs;
@@ -35,7 +35,6 @@ public class SuikaGameManager : MonoBehaviour
         _currentScore = 0;
         uiManager.UpdateScore(0);
         
-        // タイトル画面ではネクストアイコンを透明にして隠しておく
         if (uiManager.nextFruitIcon != null)
         {
             Color c = uiManager.nextFruitIcon.color;
@@ -43,6 +42,7 @@ public class SuikaGameManager : MonoBehaviour
             uiManager.nextFruitIcon.color = c;
         }
 
+        ClearAllFruits();
         uiManager.ShowTitleScreen();
     }
 
@@ -62,7 +62,6 @@ public class SuikaGameManager : MonoBehaviour
         uiManager.ShowGameScreen();
         _isGamePlaying = true;
         
-        // プレイ画面になったら、プレイヤーに果物の準備を指示する
         if (playerController != null)
         {
             playerController.StartGame();
@@ -72,9 +71,7 @@ public class SuikaGameManager : MonoBehaviour
     public void EvolveFruit(int nextLevel, Vector3 spawnPosition)
     {
         if (nextLevel >= allFruitPrefabs.Length) return;
-
         Instantiate(allFruitPrefabs[nextLevel], spawnPosition, Quaternion.identity);
-
         int scoreToAdd = nextLevel * 10; 
         AddScore(scoreToAdd);
     }
@@ -83,5 +80,24 @@ public class SuikaGameManager : MonoBehaviour
     {
         _currentScore += amount;
         uiManager.UpdateScore(_currentScore);
+    }
+
+    public void GameOver()
+    {
+        if (!_isGamePlaying) return;
+
+        _isGamePlaying = false;
+        // 変更：現在のスコアをUIマネージャーに渡す
+        uiManager.ShowGameOverScreen(_currentScore);
+        Debug.Log("ゲームオーバー！");
+    }
+
+    private void ClearAllFruits()
+    {
+        SuikaFruit[] fruits = FindObjectsOfType<SuikaFruit>();
+        foreach (SuikaFruit f in fruits)
+        {
+            Destroy(f.gameObject);
+        }
     }
 }

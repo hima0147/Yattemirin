@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI; // UIを操作するために追加
+using UnityEngine.UI;
 using TMPro;
 
 public class SuikaUIManager : MonoBehaviour
@@ -9,10 +9,15 @@ public class SuikaUIManager : MonoBehaviour
     public GameObject panelReady;
     public GameObject panelGo;
     public GameObject panelGameInfo;
+    public GameObject panelGameOver;
 
     [Header("テキスト・アイコン")]
     public TextMeshProUGUI scoreText;
-    public Image nextFruitIcon; // GameObjectからImage型に変更
+    public Image nextFruitIcon;
+
+    [Header("ゲームオーバー画面用")] // 追加：リザルト表示用
+    public TextMeshProUGUI resultScoreText;
+    public TextMeshProUGUI rankText;
 
     [Header("背景（余白）の色変更")]
     public Camera mainCamera;
@@ -24,13 +29,11 @@ public class SuikaUIManager : MonoBehaviour
         scoreText.text = score.ToString();
     }
 
-    // 次の果物の画像アイコンを更新する処理
     public void UpdateNextFruitIcon(Sprite fruitSprite)
     {
         if (nextFruitIcon != null)
         {
             nextFruitIcon.sprite = fruitSprite;
-            // 透明だったアイコンを不透明(アルファ値1)にして表示する
             Color c = nextFruitIcon.color;
             c.a = 1f;
             nextFruitIcon.color = c;
@@ -43,6 +46,7 @@ public class SuikaUIManager : MonoBehaviour
         panelReady.SetActive(false);
         panelGo.SetActive(false);
         panelGameInfo.SetActive(false);
+        if(panelGameOver != null) panelGameOver.SetActive(false);
         if (mainCamera != null) mainCamera.backgroundColor = titleBackgroundColor;
     }
 
@@ -62,6 +66,30 @@ public class SuikaUIManager : MonoBehaviour
     {
         panelGo.SetActive(false);
         panelGameInfo.SetActive(true);
+        if(panelGameOver != null) panelGameOver.SetActive(false);
         if (mainCamera != null) mainCamera.backgroundColor = gameBackgroundColor;
+    }
+
+    // 変更：スコアを受け取ってリザルト画面に反映する
+    public void ShowGameOverScreen(int finalScore)
+    {
+        if(panelGameOver != null) panelGameOver.SetActive(true);
+
+        // 最終スコアの表示
+        if(resultScoreText != null)
+        {
+            resultScoreText.text = finalScore.ToString() + "点";
+        }
+
+        // スコアに応じた称号の決定と表示
+        if(rankText != null)
+        {
+            string rank = "ブロンズ"; // デフォルト
+            if (finalScore >= 3000) rank = "レジェンド";
+            else if (finalScore >= 1500) rank = "ゴールド";
+            else if (finalScore >= 500) rank = "シルバー";
+            
+            rankText.text = rank;
+        }
     }
 }
