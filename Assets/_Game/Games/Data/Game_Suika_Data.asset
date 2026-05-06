@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MinigameData
   gameTitle: "\u30CF\u30C3\u30D4\u30FC\u30B9\u30A4\u30AB\u30B2\u30FC\u30E0"
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: fd5de556fde9ea84da48c6258a663c24, type: 3}
   sceneName: Game_Suika
