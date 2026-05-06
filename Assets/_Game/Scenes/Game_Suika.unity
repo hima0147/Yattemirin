@@ -1059,7 +1059,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cf93b529b09f9b4c84df3fbd901bbc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SuikaGameOverLine
-  timeToGameOver: 2
+  gameOverTime: 2
 --- !u!1 &215074621
 GameObject:
   m_ObjectHideFlags: 0
@@ -3585,7 +3585,7 @@ LineRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -10
   m_MaskInteraction: 0
   m_Positions:
   - {x: 0, y: 0, z: 0}

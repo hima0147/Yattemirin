@@ -142,7 +142,10 @@ public class SuikaPlayerController : MonoBehaviour
     {
         if (guideLine != null && _currentFruit != null)
         {
+            // フルーツのど真ん中の座標
             Vector3 pos = _currentFruit.transform.position;
+            
+            // 線のスタートを「ど真ん中」、ゴールを「はるか下」に設定する
             guideLine.SetPosition(0, pos);
             guideLine.SetPosition(1, new Vector3(pos.x, -10f, 0f));
         }

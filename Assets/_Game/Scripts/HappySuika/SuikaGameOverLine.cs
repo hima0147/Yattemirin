@@ -1,37 +1,43 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class SuikaGameOverLine : MonoBehaviour
 {
     [Header("ゲームオーバーになるまでの時間（秒）")]
-    public float timeToGameOver = 2.0f;
+    public float gameOverTime = 2.0f;
 
-    private float _stayTimer = 0f;
+    // 線に触れている果物それぞれの「滞在時間」を記録する辞書
+    private Dictionary<Collider2D, float> fruitTimers = new Dictionary<Collider2D, float>();
 
-    // 果物が線に触れ続けている間、ずっと呼ばれる処理
-    void OnTriggerStay2D(Collider2D collision)
+    private void OnTriggerStay2D(Collider2D collision)
     {
-        if (!SuikaGameManager.Instance.IsPlaying) return;
-
-        // 触れているのが果物（SuikaFruitがついているか）を確認
-        if (collision.GetComponent<SuikaFruit>() != null)
+        if (collision.CompareTag("Fruit"))
         {
-            _stayTimer += Time.deltaTime; // タイマーを進める
+            // ★修正ポイント：まだ落としていない（プレイヤーが掴んでいて重力が0の）果物は無視する
+            Rigidbody2D rb = collision.GetComponent<Rigidbody2D>();
+            if (rb != null && rb.gravityScale == 0f) return;
 
-            // 指定時間を超えたらゲームオーバー！
-            if (_stayTimer >= timeToGameOver)
+            // タイマーのカウントアップ
+            if (!fruitTimers.ContainsKey(collision))
+            {
+                fruitTimers[collision] = 0f;
+            }
+            fruitTimers[collision] += Time.deltaTime;
+
+            // 2秒を超えたらゲームオーバー
+            if (fruitTimers[collision] >= gameOverTime)
             {
                 SuikaGameManager.Instance.GameOver();
-                _stayTimer = 0f; // 重複して呼ばれないようにリセット
             }
         }
     }
 
-    // 果物が線から離れたらタイマーをリセット
-    void OnTriggerExit2D(Collider2D collision)
+    private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.GetComponent<SuikaFruit>() != null)
+        // 果物が線から離れたら、その果物のタイマーをリセット（削除）する
+        if (fruitTimers.ContainsKey(collision))
         {
-            _stayTimer = 0f;
+            fruitTimers.Remove(collision);
         }
     }
 }
