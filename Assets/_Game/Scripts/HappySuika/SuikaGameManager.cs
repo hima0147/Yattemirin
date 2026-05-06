@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement; // ★追加：シーン遷移に必要
 
 public class SuikaGameManager : MonoBehaviour
 {
@@ -13,6 +14,10 @@ public class SuikaGameManager : MonoBehaviour
 
     [Header("全11種類の果物プレハブを順番に登録(0〜10)")]
     public GameObject[] allFruitPrefabs;
+
+    // ★追加：戻る先のメインメニューのシーン名（完全一致で指定）
+    [Header("戻る先のシーン名")]
+    public string mainMenuSceneName = "MainMenu"; 
 
     private int _currentScore = 0;
     private bool _isGamePlaying = false;
@@ -111,69 +116,60 @@ public class SuikaGameManager : MonoBehaviour
     // ポーズ機能関連
     // ==========================================
     
-    // 背景の「一時停止アイコン」を押した時
     public void OpenPauseMenu()
     {
         if (!_isGamePlaying || _isPaused) return;
         _isPaused = true;
-        Time.timeScale = 0f; // 時間を止める
+        Time.timeScale = 0f; 
         uiManager.ShowPauseScreen(true);
     }
 
-    // ポーズ画面の「ゲームにもどる」または「×」を押した時
     public void ResumeGame()
     {
         if (!_isGamePlaying) return;
         _isPaused = false;
-        Time.timeScale = 1f; // 時間を動かす
+        Time.timeScale = 1f; 
         uiManager.ShowPauseScreen(false);
     }
 
-    // ポーズ画面の「あそびかた」を押した時
     public void OpenHowToPlay()
     {
         uiManager.ShowHowToPlayScreen(true);
     }
 
-    // あそびかた画面を閉じる時
     public void CloseHowToPlay()
     {
         uiManager.ShowHowToPlayScreen(false);
     }
 
-    // ポーズ画面の「タイトルにもどる」を押した時
     public void ReturnToTitleFromPause()
     {
-        ResumeGame(); // 時間の停止を解除してから
-        ShowTitle();  // タイトルへ
+        ResumeGame(); 
+        ShowTitle();  
     }
 
     // ==========================================
     // リトライ確認機能関連
     // ==========================================
 
-    // 背景の「くるっと回る矢印（リトライ）」を押した時
     public void OpenRetryConfirm()
     {
         if (!_isGamePlaying || _isPaused) return;
         _isPaused = true;
-        Time.timeScale = 0f; // ポーズと同じく時間を止める
+        Time.timeScale = 0f; 
         uiManager.ShowRetryConfirmScreen(true);
     }
 
-    // リトライ画面で「いいえ」を押した時
     public void OnRetryNo()
     {
         uiManager.ShowRetryConfirmScreen(false);
         _isPaused = false;
-        Time.timeScale = 1f; // ゲーム再開
+        Time.timeScale = 1f; 
     }
 
-    // リトライ画面で「はい」を押した時
     public void OnRetryYes()
     {
         uiManager.ShowRetryConfirmScreen(false);
-        // ここから先は即座リトライの処理と同じ
         Time.timeScale = 1f; 
         _isPaused = false;
         _isGamePlaying = false; 
@@ -191,5 +187,16 @@ public class SuikaGameManager : MonoBehaviour
         {
             Destroy(f.gameObject);
         }
+    }
+
+    // ★追加：メインメニュー（親アプリ）に戻る機能
+    public void ReturnToMainMenu()
+    {
+        // 念のため時間を元に戻しておく
+        Time.timeScale = 1f;
+        
+        // 指定したシーン名を読み込む
+        Debug.Log(mainMenuSceneName + " シーンへ戻ります");
+        SceneManager.LoadScene(mainMenuSceneName);
     }
 }
