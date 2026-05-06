@@ -17,8 +17,35 @@ public class GameButton : MonoBehaviour
         myData = data;
         elevator = elevatorController; // 連絡先を覚える
 
-        if (titleText != null) titleText.text = data.gameTitle;
-        if (iconImage != null && data.icon != null) iconImage.sprite = data.icon;
+        // ===============================================
+        // ★修正：アイコンの有無で「文字」と「画像」の表示を切り替える
+        // ===============================================
+        if (data.icon != null)
+        {
+            // 【アイコンがある場合】（スイカゲームなど）
+            if (iconImage != null)
+            {
+                iconImage.sprite = data.icon;
+                iconImage.gameObject.SetActive(true); // 画像枠を表示(ON)
+            }
+            if (titleText != null)
+            {
+                titleText.gameObject.SetActive(false); // テキストを隠す(OFF)
+            }
+        }
+        else
+        {
+            // 【アイコンがない場合】（つみつみバーガーなど）
+            if (titleText != null)
+            {
+                titleText.text = data.gameTitle;
+                titleText.gameObject.SetActive(true); // テキストを表示(ON)
+            }
+            if (iconImage != null)
+            {
+                iconImage.gameObject.SetActive(false); // 画像枠を隠す(OFF)
+            }
+        }
     }
 
     // ボタン設定で「On Click」に登録する関数
