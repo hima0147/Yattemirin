@@ -10,12 +10,15 @@ public class SuikaUIManager : MonoBehaviour
     public GameObject panelGo;
     public GameObject panelGameInfo;
     public GameObject panelGameOver;
+    public GameObject panelPause; 
+    public GameObject panelRetryConfirm; // 追加：リトライ確認ポップアップ
+    public GameObject panelHowToPlay;    // 追加：あそびかたポップアップ
 
     [Header("テキスト・アイコン")]
     public TextMeshProUGUI scoreText;
     public Image nextFruitIcon;
 
-    [Header("ゲームオーバー画面用")] // 追加：リザルト表示用
+    [Header("ゲームオーバー画面用")]
     public TextMeshProUGUI resultScoreText;
     public TextMeshProUGUI rankText;
 
@@ -47,6 +50,9 @@ public class SuikaUIManager : MonoBehaviour
         panelGo.SetActive(false);
         panelGameInfo.SetActive(false);
         if(panelGameOver != null) panelGameOver.SetActive(false);
+        if(panelPause != null) panelPause.SetActive(false);
+        if(panelRetryConfirm != null) panelRetryConfirm.SetActive(false);
+        if(panelHowToPlay != null) panelHowToPlay.SetActive(false);
         if (mainCamera != null) mainCamera.backgroundColor = titleBackgroundColor;
     }
 
@@ -67,29 +73,41 @@ public class SuikaUIManager : MonoBehaviour
         panelGo.SetActive(false);
         panelGameInfo.SetActive(true);
         if(panelGameOver != null) panelGameOver.SetActive(false);
+        if(panelPause != null) panelPause.SetActive(false);
+        if(panelRetryConfirm != null) panelRetryConfirm.SetActive(false);
+        if(panelHowToPlay != null) panelHowToPlay.SetActive(false);
         if (mainCamera != null) mainCamera.backgroundColor = gameBackgroundColor;
     }
 
-    // 変更：スコアを受け取ってリザルト画面に反映する
     public void ShowGameOverScreen(int finalScore)
     {
         if(panelGameOver != null) panelGameOver.SetActive(true);
+        if(resultScoreText != null) resultScoreText.text = finalScore.ToString() + "点";
 
-        // 最終スコアの表示
-        if(resultScoreText != null)
-        {
-            resultScoreText.text = finalScore.ToString() + "点";
-        }
-
-        // スコアに応じた称号の決定と表示
         if(rankText != null)
         {
-            string rank = "ブロンズ"; // デフォルト
+            string rank = "ブロンズ";
             if (finalScore >= 3000) rank = "レジェンド";
             else if (finalScore >= 1500) rank = "ゴールド";
             else if (finalScore >= 500) rank = "シルバー";
-            
             rankText.text = rank;
         }
+    }
+
+    public void ShowPauseScreen(bool isShow)
+    {
+        if(panelPause != null) panelPause.SetActive(isShow);
+    }
+
+    // 追加：リトライ確認画面の表示/非表示
+    public void ShowRetryConfirmScreen(bool isShow)
+    {
+        if(panelRetryConfirm != null) panelRetryConfirm.SetActive(isShow);
+    }
+
+    // 追加：あそびかた画面の表示/非表示
+    public void ShowHowToPlayScreen(bool isShow)
+    {
+        if(panelHowToPlay != null) panelHowToPlay.SetActive(isShow);
     }
 }

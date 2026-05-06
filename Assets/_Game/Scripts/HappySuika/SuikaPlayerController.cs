@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.EventSystems; // 追加：UIをタッチしているかの判定に必要
+using UnityEngine.EventSystems;
 
 public class SuikaPlayerController : MonoBehaviour
 {
@@ -19,8 +19,6 @@ public class SuikaPlayerController : MonoBehaviour
     
     private int _nextFruitIndex;
     private int _debugFruitIndex = 0;
-
-    // 追加：UIを操作中かどうかのフラグ
     private bool _isInteractingWithUI = false;
 
     void Start()
@@ -35,40 +33,29 @@ public class SuikaPlayerController : MonoBehaviour
 
         UpdateGuideLine();
 
-        // 1. 画面をタッチした瞬間
         if (Input.GetMouseButtonDown(0))
         {
-            // イベントシステムを使って、指（マウス）の下にUIがあるかチェック
-            // （※エディタのクリックと、実機のタッチの両方に対応する安全な書き方です）
             if (EventSystem.current.IsPointerOverGameObject() || 
                (Input.touchCount > 0 && EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId)))
             {
-                _isInteractingWithUI = true; // UI操作中としてマーク
-                return; // ここで処理を止める（果物は動かさない）
+                _isInteractingWithUI = true;
+                return;
             }
         }
 
-        // 2. 指を離した瞬間
         if (Input.GetMouseButtonUp(0))
         {
-            // UI操作中だった場合は、落とさずにフラグをリセットして終了
             if (_isInteractingWithUI)
             {
                 _isInteractingWithUI = false;
                 return;
             }
-            
             DropFruit();
         }
 
-        // 3. タッチしたまま指を動かしている間
         if (Input.GetMouseButton(0))
         {
-            // UI操作中でなければ果物を追従させる
-            if (!_isInteractingWithUI)
-            {
-                MoveFruit();
-            }
+            if (!_isInteractingWithUI) MoveFruit();
         }
     }
 
@@ -77,6 +64,15 @@ public class SuikaPlayerController : MonoBehaviour
         _nextFruitIndex = Random.Range(0, dropFruitPrefabs.Length);
         _debugFruitIndex = 0;
         PrepareCurrentFruit();
+    }
+
+    // ★欠けていたメソッドを追加：ゲームを中断・リセットする時の処理
+    public void StopGame()
+    {
+        _canDrop = false;
+        _isInteractingWithUI = false;
+        if (guideLine != null) guideLine.enabled = false;
+        CancelInvoke(nameof(PrepareCurrentFruit)); // 1.5秒後の落下予約をキャンセル
     }
 
     void PrepareCurrentFruit()
@@ -100,18 +96,14 @@ public class SuikaPlayerController : MonoBehaviour
 
         if (guideLine != null) guideLine.enabled = true;
         _canDrop = true;
-        _isInteractingWithUI = false; // 念のためここでもリセット
+        _isInteractingWithUI = false;
     }
 
     public void CycleDebugFruit()
     {
         if (!SuikaGameManager.Instance.isDebugMode || _currentFruit == null || !_canDrop) return;
-
         _debugFruitIndex++;
-        if (_debugFruitIndex >= SuikaGameManager.Instance.allFruitPrefabs.Length)
-        {
-            _debugFruitIndex = 0;
-        }
+        if (_debugFruitIndex >= SuikaGameManager.Instance.allFruitPrefabs.Length) _debugFruitIndex = 0;
 
         Vector3 currentPos = _currentFruit.transform.position;
         Destroy(_currentFruit);
