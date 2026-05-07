@@ -1,6 +1,6 @@
 using UnityEngine;
 using DG.Tweening;
-using UnityEngine.SceneManagement; // シーン移動に必要！
+using UnityEngine.SceneManagement;
 
 public class ElevatorController : MonoBehaviour
 {
@@ -11,44 +11,50 @@ public class ElevatorController : MonoBehaviour
 
     [Header("アニメーション設定")]
     public float openDuration = 1.0f;
-    public float moveDistance = 600f;
+    // public float moveDistance = 600f; // ★固定値をやめました
 
     private float originalLeftX;
     private float originalRightX;
+    private float moveDistance; // ★自動計算用の変数に変更
 
     void Start()
     {
-        if (leftDoor != null) originalLeftX = leftDoor.anchoredPosition.x;
-        if (rightDoor != null) originalRightX = rightDoor.anchoredPosition.x;
+        if (leftDoor != null)
+        {
+            originalLeftX = leftDoor.anchoredPosition.x;
+            // ★修正：扉の実際の幅を「移動距離」として自動計算する
+            moveDistance = leftDoor.rect.width; 
+        }
+        if (rightDoor != null)
+        {
+            originalRightX = rightDoor.anchoredPosition.x;
+        }
     }
 
     // ゲーム開始用：扉を開いて、完了したらシーンを読み込む
     public void LoadGameScene(string nextSceneName)
     {
-        // 1. ボタンを消す
         if (buttonPanelGroup != null)
         {
-            buttonPanelGroup.blocksRaycasts = false; // 連打防止
+            buttonPanelGroup.blocksRaycasts = false;
             buttonPanelGroup.DOFade(0f, 0.5f);
         }
 
-        // 2. 扉を開く
-        // OnComplete(...) の中に、アニメ終了後にやりたいことを書く
+        // 左扉を moveDistance 分だけ左へ
         leftDoor.DOAnchorPosX(originalLeftX - moveDistance, openDuration)
             .SetDelay(0.2f)
             .SetEase(Ease.OutQuad);
 
+        // 右扉を moveDistance 分だけ右へ
         rightDoor.DOAnchorPosX(originalRightX + moveDistance, openDuration)
             .SetDelay(0.2f)
             .SetEase(Ease.OutQuad)
             .OnComplete(() => {
-                // 3. 開ききったらシーン移動！
                 Debug.Log(nextSceneName + " へ移動します");
                 SceneManager.LoadScene(nextSceneName);
             });
     }
 
-    // デバッグ用（右クリックメニュー）
     [ContextMenu("テスト：扉を開く")]
     public void TestOpen()
     {
